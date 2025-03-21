@@ -3,14 +3,14 @@
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import Image from "next/image";
-import { client, urlFor } from "../../../sanity/lib/client";
+import { client } from "../../../sanity/lib/client";
 import { allProductsQuery } from "../../../sanity/lib/queries";
 import { FaRegHeart, FaHeart, FaShoppingCart } from "react-icons/fa";
 import { useCart } from "../../../app/context/cartContext";
-import { Product as ProductType } from "../../../app/utils/types";
+import { Product, CartItem } from "../../../app/utils/types";
 
 export default function BestSelling() {
-  const [products, setProducts] = useState<ProductType[]>([]);
+  const [products, setProducts] = useState<Product[]>([]);
   const [wishlist, setWishlist] = useState<Set<string>>(() => {
     if (typeof window !== "undefined") {
       const storedWishlist = localStorage.getItem("wishlist");
@@ -27,7 +27,8 @@ export default function BestSelling() {
 
   useEffect(() => {
     async function fetchProduct() {
-      const fetchedProducts: ProductType[] = await client.fetch(allProductsQuery);
+      const fetchedProducts: Product[] = await client.fetch(allProductsQuery);
+      console.log("Fetched Products:", fetchedProducts); // Debug the data
       setProducts(fetchedProducts);
     }
     fetchProduct();
@@ -78,15 +79,21 @@ export default function BestSelling() {
     setTimeout(() => setNotification(null), 3000);
   };
 
-  const handleAddToCart = (product: ProductType) => {
-    const imageUrl = product.image.asset.url || "/path/to/placeholder-image.png";
-    const cartProduct = {
-      _id: product._id,
+  const handleAddToCart = (product: Product) => {
+    const imageUrl = product.images[0]?.asset.url || "/path/to/placeholder-image.png";
+    const cartProduct: CartItem = {
+      id: product._id,
       title: product.title,
+      image: imageUrl,
+      slug: product.slug.current,
       price: product.price,
-      image: imageUrl, // Use resolved URL for cartContext
+      category: product.category,
+      productType: product.productType,
+      selectedSize: product.sizes?.[0]?.size || "",
+      selectedCustomizations: {},
+      quantity: 1,
       discountPercentage: product.discountPercentage,
-      productImage: { asset: { url: imageUrl } }, // Match cartContext expectation
+      totalPrice: calculateTotalPrice(product),
     };
     addToCart(cartProduct);
     setNotification("Item added to Cart");
@@ -94,8 +101,19 @@ export default function BestSelling() {
     setTimeout(() => setNotification(null), 3000);
   };
 
-  const getDiscountedPrice = (price: number, discountPercentage: number) =>
-    price - price * (discountPercentage / 100);
+  const calculateTotalPrice = (product: Product): number => {
+    let total = product.price;
+    if (product.discountPercentage) {
+      total -= (total * product.discountPercentage) / 100;
+    }
+    return total;
+  };
+
+  const getAverageRating = (reviews: Product["customerReviews"]): number => {
+    if (!reviews || reviews.length === 0) return 0;
+    const totalRating = reviews.reduce((sum, review) => sum + review.rating, 0);
+    return totalRating / reviews.length;
+  };
 
   return (
     <div className="py-12 sm:py-16 bg-navy-50 overflow-hidden">
@@ -111,7 +129,8 @@ export default function BestSelling() {
 
         <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
           {products.map((product) => {
-            const discountedPrice = getDiscountedPrice(product.price, product.discountPercentage);
+            const discountedPrice = calculateTotalPrice(product);
+            const averageRating = getAverageRating(product.customerReviews);
             return (
               <div
                 key={product._id}
@@ -119,34 +138,50 @@ export default function BestSelling() {
               >
                 <Link href={`/products/${product.slug.current}`}>
                   <h2 className="text-base sm:text-lg font-Montserrat font-bold text-navy-900 mb-2">
-                    {product.productName}
+                    {product.title}
                   </h2>
-                  {product.image?.asset?.url ? (
+                  {product.images && product.images.length > 0 && product.images[0]?.asset?.url ? (
                     <div className="relative">
                       <Image
-                        src={product.image.asset.url}
-                        alt={product.title}
+                        src={product.images[0].asset.url}
+                        alt={product.images[0].alt || product.title} // Use alt from image if available
                         width={300}
                         height={250}
                         style={{ objectFit: "cover" }}
                         className="w-full h-40 sm:h-48 rounded-lg mb-2 transition-transform hover:scale-105"
                       />
-                      <div className="absolute top-2 left-2 bg-amber-400 text-navy-900 text-xs font-semibold py-1 px-2 rounded-full">
-                        {product.discountPercentage}% OFF
-                      </div>
+                      {product.discountPercentage > 0 && (
+                        <div className="absolute top-2 left-2 bg-amber-400 text-navy-900 text-xs font-semibold py-1 px-2 rounded-full">
+                          {product.discountPercentage}% OFF
+                        </div>
+                      )}
                     </div>
                   ) : (
-                    <p className="text-navy-500">No image available</p>
+                    <div className="w-full h-40 sm:h-48 bg-gray-200 rounded-lg mb-2 flex items-center justify-center">
+                      <p className="text-navy-500">No image available</p>
+                    </div>
                   )}
                   <p className="text-navy-900 font-bold mb-2">
-                    <span className="line-through text-navy-400">PKR {product.price}</span>
+                    {product.discountPercentage > 0 && (
+                      <span className="line-through text-navy-400">PKR {product.price}</span>
+                    )}
                     <span className="ml-2 text-amber-500">PKR {discountedPrice.toFixed(2)}</span>
                   </p>
                   <div className="flex items-center text-sm text-amber-400">
-                    <span>★★★★☆</span>
-                    <span className="ml-1 text-navy-500">
-                      {product.reviews ? product.reviews.length : 0} reviews
+                    <span>
+                      {"★".repeat(Math.round(averageRating))}
+                      {"☆".repeat(5 - Math.round(averageRating))}
                     </span>
+                    <span className="ml-1 text-navy-500">
+                      ({product.customerReviews?.length || 0} reviews)
+                    </span>
+                  </div>
+                  <div className="text-sm text-navy-600 mt-1">
+                    {product.productType === "stitched"
+                      ? "Ready to Wear"
+                      : product.productType === "unstitched"
+                      ? "Unstitched Fabric"
+                      : "Custom Stitched"}
                   </div>
                 </Link>
 
@@ -167,7 +202,21 @@ export default function BestSelling() {
                 <div className="absolute top-2 right-2 bg-navy-200 text-navy-900 text-xs font-semibold py-1 px-2 rounded-full">
                   Best Seller
                 </div>
-                <div className="text-sm text-green-500 mt-2 text-center">In Stock</div>
+                <div
+                  className={`text-sm mt-2 text-center ${
+                    product.availability === "in_stock"
+                      ? "text-green-500"
+                      : product.availability === "out_of_stock"
+                      ? "text-red-500"
+                      : "text-yellow-500"
+                  }`}
+                >
+                  {product.availability === "in_stock"
+                    ? "In Stock"
+                    : product.availability === "out_of_stock"
+                    ? "Out of Stock"
+                    : "Pre-Order"}
+                </div>
               </div>
             );
           })}
