@@ -18,8 +18,8 @@ const geistMono = localFont({
 });
 
 export const metadata: Metadata = {
-  title: "MA Foods",
-  description: "Frozen meals made simple and delicious",
+  title: "MA Tailor",
+  description: "Online Tailor Shop",
 };
 
 export default function RootLayout({
