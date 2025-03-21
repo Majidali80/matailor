@@ -9,29 +9,22 @@ const config: Config = {
   theme: {
     extend: {
       colors: {
-        navy: {
-          100: "#E6E9F0",
-          200: "#B0B8CC",
-          500: "#4B5EAA",
-          600: "#3B4A8A",
-          700: "#2C376A",
-          800: "#1E254A",
-          900: "#11142D",
-        },
-        amber: {
-          300: "#FCD34D",
-          400: "#FBBF24",
-          500: "#F59E0B",
-          600: "#D97706",
-        },
-        myDgold:"#ED9B33",
-			myLgold:"#F1B434",
-			myBkack:"#111011",
-			myLblack:"#101820",
-			myBlue:"#2536be",
-        background: "var(--background)",
-        foreground: "var(--foreground)",
+        rosePink: "#F5A9B8", // Primary color
+        goldenBeige: "#D4AF37", // Secondary/accent color
+        ivoryWhite: "#FFF8F0", // Background/neutral color
+        charcoal: "#333333",
+        navyBlue: "#1A2526", // Primary color
+        darkOrange: "#C2410C", // Secondary/accent color 1
+        darkYellow: "#B45309", // Secondary/accent color 2
+        softWhite: "#F5F5F5", // Text color // Text color
       },
+      fontFamily: {
+        Montserrat: ["Montserrat", "sans-serif"],
+      },
+      animation: {
+        fadeIn: "fadeIn 1s ease-in-out",
+      },
+      
     },
   },
   plugins: [],
