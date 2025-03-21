@@ -7,14 +7,41 @@ export const productsByCategoryQuery = groq`*[_type == "product" && category == 
 
 export const allProductsQuery = groq`*[_type == "product"] {
   _id,
-  productName,
   title,
-  "image": { "asset": { "url": image.asset->url } },
+  description,
+  "slug": slug.current,
+  category,
+  productType,
+  fabricType,
+  materials,
+  colors,
+  embroideryDetails,
+  pattern,
+  "images": images[] {
+    _key,
+    _type,
+    "asset": asset-> { url },
+    alt,
+    caption
+  },
+  sizes,
+  measurements,
+  customizationOptions,
   price,
   discountPercentage,
-  slug,
-  reviews
-  }`;
-
-  
-
+  inventory,
+  availability,
+  shippingInformation,
+  careInstructions,
+  specialOffers,
+  customerReviews,
+  tags,
+  dateAdded,
+  isFeatured,
+  "relatedProducts": relatedProducts[]->{
+    _id,
+    title,
+    "slug": slug.current,
+    "images": images[] { _key, _type, "asset": asset-> { url }, alt, caption }
+  }
+}`;
