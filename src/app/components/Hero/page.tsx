@@ -3,7 +3,7 @@ import Link from "next/link";
 
 export default function Hero() {
   return (
-    <section className="w-full mx-auto relative overflow-hidden h-screen md:h-[80vh] min-h-[600px]">
+    <section className="mt-16 w-full mx-auto relative overflow-hidden h-screen md:h-[80vh] min-h-[600px]">
       {/* Background Image */}
       <div className="absolute inset-0 w-full h-full">
         <Image
@@ -21,7 +21,7 @@ export default function Hero() {
       <div className="absolute inset-0 bg-navyBlue/40" />
 
       {/* Content Container */}
-      <div className="relative z-10 flex flex-col md:flex-row items-center justify-between px-4 py-8 sm:px-6 sm:py-12 md:px-12 md:py-16 lg:px-24 lg:py-20 gap-6 sm:gap-8 md:gap-12 h-full">
+      <div className="relative z-5 flex flex-col md:flex-row items-center justify-between px-4 py-8 sm:px-6 sm:py-12 md:px-12 md:py-16 lg:px-24 lg:py-20 gap-6 sm:gap-8 md:gap-12 h-full">
         {/* Left Section: Text and Call-to-Action */}
         <div className="flex-1 space-y-4 sm:space-y-6 md:space-y-8 animate-fadeIn text-center md:text-left">
           <h1 className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-Montserrat font-extrabold leading-tight tracking-tight text-darkYellow drop-shadow-lg">
