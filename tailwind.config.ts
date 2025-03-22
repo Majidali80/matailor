@@ -17,6 +17,8 @@ const config: Config = {
         darkOrange: "#C2410C", // Secondary/accent color 1
         darkYellow: "#B45309", // Secondary/accent color 2
         softWhite: "#F5F5F5", // Text color // Text color
+        darkPurple: "#4B0082",
+        
       },
       fontFamily: {
         Montserrat: ["Montserrat", "sans-serif"],
