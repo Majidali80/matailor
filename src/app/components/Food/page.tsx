@@ -131,8 +131,11 @@ export default function BestSelling() {
                 key={product._id}
                 className="relative bg-softWhite rounded-xl shadow-lg p-4 sm:p-6 border border-charcoal hover:shadow-2xl hover:border-darkOrange transition-all duration-300"
               >
+           
+                
+
                 <Link href={`/products/${product.slug.current}`}>
-                  <h2 className="text-base sm:text-lg font-Montserrat font-bold text-navyBlue mb-2">
+                  <h2 className="text-base sm:text-lg font-Montserrat font-bold text-navyBlue mb-2 pr-10">
                     {product.title}
                   </h2>
                   {product.images && product.images.length > 0 && product.images[0]?.asset?.url ? (
@@ -194,7 +197,7 @@ export default function BestSelling() {
                     <FaShoppingCart size={20} />
                   </button>
                 </div>
-                <div className="absolute top-2 right-2 bg-charcoal text-ivoryWhite text-xs font-semibold py-1 px-2 rounded-full">
+                <div className="absolute top-2 right-4 bg-yellow-400 text-black text-xs font-semibold py-1 px-2 rounded-full">
                   Best Seller
                 </div>
                 <div
