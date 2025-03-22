@@ -47,7 +47,7 @@ const Search = () => {
             type="text"
             value={query}
             onChange={(e) => setQuery(e.target.value)}
-            placeholder="Search MA Foods..."
+            placeholder="Search MA Tailor..."
             className="w-full p-2 rounded-md bg-navy-700 text-amber-300 placeholder-amber-200 border border-navy-600 focus:outline-none focus:border-amber-400"
             autoFocus
           />
