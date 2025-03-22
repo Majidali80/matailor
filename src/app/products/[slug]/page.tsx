@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import Image from "next/image";
-import { useRouter, useParams } from "next/navigation"; // Updated imports
+import { useParams } from "next/navigation";
 import { client } from "../../../sanity/lib/client";
 import { groq } from "next-sanity";
 import { Product, CartItem } from "../../../app/utils/types";
@@ -11,15 +11,18 @@ import Link from "next/link";
 import { useCart } from "../../../app/context/cartContext";
 
 export default function ProductPage() {
-  const router = useRouter();
-  const params = useParams(); // Use useParams to get dynamic route params
-  const slug = params?.slug as string; // Access slug from params
+  const params = useParams();
+  const slug = params?.slug as string;
   const [product, setProduct] = useState<Product | null>(null);
   const [loading, setLoading] = useState(true);
-  const { addToCart } = useCart(); // Integrate cart context
+  const [notification, setNotification] = useState<string | null>(null);
+  const { addToCart } = useCart();
 
   useEffect(() => {
-    if (!slug) return;
+    if (!slug) {
+      setLoading(false);
+      return;
+    }
 
     const fetchProduct = async () => {
       const query = groq`*[_type == "product" && slug.current == $slug][0] {
@@ -51,13 +54,45 @@ export default function ProductPage() {
         isFeatured,
         "relatedProducts": relatedProducts[]-> { _id, title, "slug": slug.current, "images": images[] { _key, _type, "asset": asset-> { url }, alt, caption } }
       }`;
-      const fetchedProduct: Product = await client.fetch(query, { slug });
-      setProduct(fetchedProduct);
-      setLoading(false);
+      try {
+        const fetchedProduct: Product = await client.fetch(query, { slug });
+        if (fetchedProduct) {
+          setProduct(fetchedProduct);
+        } else {
+          setProduct(null);
+        }
+      } catch (error) {
+        console.error("Error fetching product:", error);
+        setProduct(null);
+      } finally {
+        setLoading(false);
+      }
     };
 
     fetchProduct();
   }, [slug]);
+
+  const handleAddToCart = () => {
+    if (!product) return;
+    const imageUrl = product.images[0]?.asset.url || "/path/to/placeholder-image.png";
+    const cartProduct: CartItem = {
+      id: product._id,
+      title: product.title,
+      image: imageUrl,
+      slug: product.slug.current,
+      price: product.price,
+      category: product.category,
+      productType: product.productType,
+      selectedSize: product.sizes?.[0]?.size || "",
+      selectedCustomizations: {},
+      quantity: 1,
+      discountPercentage: product.discountPercentage || 0,
+      totalPrice: discountedPrice,
+    };
+    addToCart(cartProduct);
+    setNotification("Item added to Cart");
+    setTimeout(() => setNotification(null), 3000);
+  };
 
   if (loading) {
     return <div className="text-center py-20 text-navyBlue">Loading...</div>;
@@ -70,26 +105,6 @@ export default function ProductPage() {
   const discountedPrice = product.discountPercentage
     ? product.price - (product.price * product.discountPercentage) / 100
     : product.price;
-
-  const handleAddToCart = () => {
-    const imageUrl = product.images[0]?.asset.url || "/path/to/placeholder-image.png";
-    const cartProduct: CartItem = {
-      id: product._id,
-      title: product.title,
-      image: imageUrl,
-      slug: product.slug.current,
-      price: product.price,
-      category: product.category,
-      productType: product.productType,
-      selectedSize: product.sizes?.[0]?.size || "", // Default to first size if available
-      selectedCustomizations: {}, // Placeholder; enhance with form logic if needed
-      quantity: 1,
-      discountPercentage: product.discountPercentage || 0,
-      totalPrice: discountedPrice,
-    };
-    addToCart(cartProduct);
-    // Optional: Add notification or redirect logic here
-  };
 
   return (
     <div className="bg-ivoryWhite min-h-screen py-12">
@@ -286,6 +301,12 @@ export default function ProductPage() {
             </button>
           </div>
         </div>
+
+        {notification && (
+          <div className="fixed bottom-4 left-1/2 transform -translate-x-1/2 px-6 py-3 rounded-md text-ivoryWhite bg-navyBlue">
+            {notification}
+          </div>
+        )}
       </div>
     </div>
   );
